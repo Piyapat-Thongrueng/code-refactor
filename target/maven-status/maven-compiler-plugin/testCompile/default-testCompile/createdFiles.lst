@@ -1,0 +1,6 @@
+com\ascendcorp\exam\service\handler\ApproveResponseHandlerTest.class
+com\ascendcorp\exam\service\handler\TransactionErrorHandlerTest.class
+com\ascendcorp\exam\service\InquiryRequestValidatorTest.class
+com\ascendcorp\exam\service\InquiryServiceTest.class
+com\ascendcorp\exam\service\handler\InvalidDataResponseHandlerTest.class
+com\ascendcorp\exam\service\handler\UnknownResponseHandlerTest.class
