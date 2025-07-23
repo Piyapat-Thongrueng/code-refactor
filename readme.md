@@ -1,79 +1,47 @@
-# Exam Overview
+# Code Refactor Summary
+
+## 1.  Main Goals for this code refactoring
+The goal of this refactoring code is to improve the code quality of the `InquiryService.java` class. After the improvements, the code should be the following characteristics:
+ -  The code in the `InquiryService.java` class is cleaner and easier to read.
+ -  The code has better quality, easier to maintain, and easier modification and scaling of future business logic or features.
+ - The unit test logic in the `InquiryServiceTest.java` class continues to work effectively with the new code.
 
 
+## 2. Problems from legacy code
+
+### 2.1 Method is too large
+
+inquiry method in `InquiryService.java` class is doing too many things. It is responsible for **validating input parameters**, **calling an external web service**, **parsing the response**, and **handling various exceptions**. This makes the method large, complex, and difficult to maintain.
+
+### 2.2 Complex nested if-else in many layers
+The code uses a long if-else to handle different response codes from the bank response (**approved**, **invalid_data**, **transaction_error**, **unknown**.). This structure is hard to **read**, **modify**, and **easily lead to errors** when new conditions need to be added.
+
+### 2.3 Inappropriate exceptions
+In validation logic throws `NullPointerException` for invalid input which should normally represent an unexpected error but in this validation part, it seems to be a predictable validation failure. A custom exception may be more appropriate.
 
 
+## 3. Refactoring steps
 
-You are working for a software development company and have been assigned a task to improve a legacy service. This service is responsible for retrieving bank information based on a bank account number. The test code has already been written, so your goal is to refactor, redesign, and/or rewrite the service code to support the existing tests.
+### Refactoring Step 1: Separate Validation Logic
+- Create a class called `InquiryRequestValidator.java` with the single responsibility of validating the input.
+- Move all if checks from `InquiryService.java` into validate() method inside the new `InquiryRequestValidator.java` class.
+- Created a custom exception called `InvalidRequestException` to represent a validation error.
+- Wrote a New Test named `InquiryRequestValidatorTest.java` to ensure new validator works correctly.
 
-
- -  Test Class: **InquiryServiceTest.java**
- -  Service Class: **InquiryService.java**
-
-
-If you have any questions, feel free to contact  <sunpawet.som@ascendcorp.com>
-
-
-## Instructions
-
-
-- Refactor the **InquiryService.java** class to improve code quality.
-- Ensure that the code follows good coding practices.
-- Write unit tests for all classes you modify or create.
+### Refactoring Step 2: Handling "invalid_data"
+- create a new class, `InvalidDataResponseHandler.java`, to handle for this specific case.
+- move all the complex code for splitting the string and determining the correct reasonCode and reasonDesc was moved into the handle() method.
+- replaced the original code in **"invalid_data"** section with a simple code call to new handler **(invalidDataHandler.handle(response))**.
+- Write a New Test named `InvalidDataResponseHandlerTest.java`, to confirm that new handler correctly parses all formats of the description string.
 
 
-## How to Check Unit Test
+### Refactoring Step 3: Move nested if "transaction_error"
+- Create a class called `TransactionErrorHandler.java` to take care of all of this complex logic.
+- Moved All Complex Logic and messy code and the string splitting and the special "98" into the handle() method of the new handler.
+- replaced `InquiryService.java` with a clean call to transactionErrorHandler.handle(response).
+- Write a New Test named `TransactionErrorHandlerTest.java`, to confirm that new handler correctly parses all formats.
 
-To make sure all test cases pass.
-
-```
-
-
-    mvn clean test
-
-
-```
-
-
-
-## Rules
-
-1. You are allowed to modify the existing source code, add new classes, or redesign the solution.
-2. You should apply clean code techniques and appropriate design patterns.
-3. All tests must pass.
-4. Any new classes must have adequate test coverage.
-
-## Submission Code
-You have two options for submitting your code:
-
-1. Compress your code into a zip file and attach it to the interview invitation email.
-2. Fork the project into your own source code repository and send the repository link in response to the interview invitation email.
-
-
-## Data Dictionary for Bank Response Code
-
-
-| Code        | Description           |  
-| ------------- |-------------|  
-| approved      | approved | 
-| invalid_data      | 100:1091:Data type is invalid.      |  
-| invalid_data | General error.     |
-| transaction_error |      |
-| transaction_error | Transaction error.     |
-| transaction_error | 100:1091:Transaction is error with code 1091.    |
-| transaction_error | 1092:Transaction is error with code 1092.    |
-| transaction_error | 98:Transaction is error with code 98.    |
-| unknown |    |
-| unknown | 5001:Unknown error code 5001   |
-| unknown | 5002:   |
-| unknown | General Invalid Data code 501   |
-| not_support |     Not Support |
-
-
-
-## Require Skills
-- Java Programming
-- Spring Boot
-- JUnit
-- Unit Testing
-- Refactoring Code
+### Refactoring Step 4: Handling "unknown" Response
+- create a new class, `UnknownResponseHandler.java`, to handle for this specific case.
+- Moved all the code for handling the "unknown" case, including the check for an empty description part into the handle() method of this new handler.
+- Wrote a New Test `UnknownResponseHandlerTest.java` to verify that it correctly handles all "unknown" scenarios.
